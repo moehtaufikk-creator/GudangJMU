@@ -1,0 +1,42 @@
+workflows:
+  flutter-generate-and-build:
+    name: Build APK (auto create flutter project)
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      vars:
+        APP_NAME: PT. JAYA MAS UTAMA
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+    scripts:
+      - name: Show Flutter version
+        script: flutter --version
+      - name: Create Flutter project skeleton
+        script: |
+          rm -rf ./* || true
+          flutter create .
+      - name: Inject our pubspec & main.dart
+        script: |
+          echo "Injecting pubspec/main..."
+          cp -f app_pubspec.yaml pubspec.yaml
+          mkdir -p lib
+          cp -f app_main.dart lib/main.dart
+      - name: Get packages
+        script: flutter pub get
+      - name: Build APK (release)
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - your@email.com
+        notify:
+          success: true
+          failure: true
